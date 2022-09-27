@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import json
 import logging
+import ssl
 import traceback
 import uuid
 from contextlib import suppress
@@ -15,15 +16,20 @@ class RSignalServer(object):
     logger.addHandler(logging.StreamHandler())
     logger.addHandler(logging.FileHandler('/var/log/rsignal/rsignal-plain.log'))
     signals = dict()
+    ssl_context = None
 
-    def __init__(self, address, port):
+    def __init__(self, host, port, ssl_context=None):
         """
             Args:
-                address(str): Listening host address.
+                host(str): Listening host address.
                 port(int): Listening port.
+                ssl_context(tuple|NoneType):
         """
+        if ssl_context:
+            self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            self.ssl_context.load_cert_chain(*ssl_context)
 
-        self.start_server = websockets.serve(self.listen, address, port, ping_interval=None)
+        self.start_server = websockets.serve(self.listen, host, port, ping_interval=None, ssl=ssl_context)
 
     async def listen(self, websocket, path):
         """
