@@ -13,6 +13,7 @@ class RSignalServer(object):
     logger = logging.getLogger('websockets')
     logger.setLevel(logging.INFO)
     logger.addHandler(logging.StreamHandler())
+    logger.addHandler(logging.FileHandler('/var/log/rsignal/rsignal-plain.log'))
     signals = dict()
 
     def __init__(self, address, port):
@@ -80,8 +81,8 @@ class RSignalServer(object):
             try:
                 message = await websocket.recv()
 
-                self.logger.info(
-                    f'{str(datetime.datetime.now())} [INFO] [RSignal.Delegate.SignalReceived] '
+                self.logger.debug(
+                    f'{str(datetime.datetime.now())} [DEBUG] [RSignal.Delegate.SignalReceived] '
                     f'Message received: ' + json.dumps({
                         "status": "failed",
                         "description": message
@@ -93,8 +94,8 @@ class RSignalServer(object):
                         await subscriber.send(message)
 
                     except websockets.WebSocketException:
-                        self.logger.info(
-                            f'{str(datetime.datetime.now())} [INFO] [RSignal.Delegate.Subscriber] '
+                        self.logger.error(
+                            f'{str(datetime.datetime.now())} [ERROR] [RSignal.Delegate.Subscriber] '
                             f'Failed to send message: ' + json.dumps({
                                 "status": "failed",
                                 "description": str(traceback.format_exc())
@@ -112,8 +113,8 @@ class RSignalServer(object):
                 )
 
             except websockets.WebSocketException:
-                self.logger.info(
-                    f'{str(datetime.datetime.now())} [INFO] [RSignal.Delegate.Publisher] '
+                self.logger.error(
+                    f'{str(datetime.datetime.now())} [ERROR] [RSignal.Delegate.Publisher] '
                     f'Receiving message failed: ' + json.dumps({
                         "status": "failed",
                         "description": str(traceback.format_exc())
