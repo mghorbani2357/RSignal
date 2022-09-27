@@ -43,24 +43,29 @@ class RSignalServer(object):
 
         # region Validation
 
+        initial_message = await websocket.recv()
         try:
-            side, signal_id = path.split('/')[1:3]
+            signal_id = path.split('/')[1:2]
+            side = json.loads(initial_message).get("event_side")
             if side not in ('publisher', 'subscriber'):
-                raise ValueError
+                raise ValueError("Invalid event side.")
         except ValueError:
-            self.logger.info(f'{str(datetime.datetime.now())} [INFO] [RSignal.Channel.Validating] Invalid path: ' + json.dumps({
+            self.logger.error(f'{str(datetime.datetime.now())} [ERROR] [RSignal.Channel.Validating] Invalid request: ' + json.dumps({
                 "channel_id": channel_id,
                 "exception": str(traceback.format_exc()),
             }))
 
             await websocket.send(json.dumps({
                 "status": "failed",
-                "description": f"Invalid Path: {path}"
+                "description": f"Invalid request: {path}",
+                "initial_message": initial_message,
             }))
             websocket.close()
             return
 
         # endregion
+
+        # Todo: Authentication
 
         signal = self.signals.get(signal_id, {
             "publishers": list(),
