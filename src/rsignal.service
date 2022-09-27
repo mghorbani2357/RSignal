@@ -1,0 +1,15 @@
+[Unit]
+Description=Remote signal handler
+After=network.target
+
+[Service]
+LimitNOFILE=infinity
+LimitNPROC=infinity
+User=rsignal
+Group=rsignal
+WorkingDirectory=/opt/rsignal/
+Environment="PATH=$PATH;/opt/rsignal/venv/bin/"
+ExecStart=/opt/rsignal/venv/bin/rsignal -c /etc/rsignal/rsignal.yml
+
+[Install]
+WantedBy=multi-user.target
